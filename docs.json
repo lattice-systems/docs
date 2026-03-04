@@ -1,0 +1,107 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Furniture Store Backend",
+  "theme": "maple",
+  "colors": {
+    "primary": "#8B4513",
+    "light": "#D2691E",
+    "dark": "#5C2E0A"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/furniture-store-utl/backend-furniture-store"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/furniture-store-utl/backend-furniture-store"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "architecture",
+              "mvc-pattern",
+              "database-models"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "environment-setup",
+              "database-configuration",
+              "migrations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Catalog Endpoints",
+            "pages": [
+              "api/catalogs/colors",
+              "api/catalogs/wood-types",
+              "api/catalogs/furniture-types",
+              "api/catalogs/unit-of-measures",
+              "api/catalogs/roles"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api/models/color",
+              "api/models/wood-type",
+              "api/models/furniture-type",
+              "api/models/unit-of-measure",
+              "api/models/role"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/overview",
+              "api/services/validation",
+              "api/services/error-handling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Developer Guide",
+            "pages": [
+              "development/coding-conventions",
+              "development/project-structure",
+              "development/adding-modules"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/overview",
+              "deployment/production"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

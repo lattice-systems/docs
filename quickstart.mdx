@@ -1,0 +1,265 @@
+---
+title: 'Quickstart'
+description: 'Get up and running with the Furniture Store Backend in 5 minutes'
+icon: 'rocket'
+---
+
+This guide will walk you through setting up the Furniture Store Backend and making your first API request.
+
+<Steps>
+  <Step title="Clone the Repository">
+    First, clone the repository to your local machine:
+
+    ```bash
+    git clone <URL_DEL_REPOSITORIO>
+    cd backend-muebleria
+    ```
+  </Step>
+
+  <Step title="Set Up Virtual Environment">
+    Create and activate a Python virtual environment:
+
+    <CodeGroup>
+      ```bash Windows
+      python -m venv venv
+      venv\Scripts\activate
+      ```
+
+      ```bash macOS/Linux
+      python -m venv venv
+      source venv/bin/activate
+      ```
+    </CodeGroup>
+
+    <Note>
+      When activated successfully, you'll see `(venv)` at the beginning of your terminal prompt.
+    </Note>
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required Python packages:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+    This will install Flask, SQLAlchemy, and all other dependencies including:
+    - Flask 3.1.2
+    - Flask-SQLAlchemy 3.1.1
+    - Flask-Migrate 4.1.0
+    - PyMySQL 1.1.2
+    - Flask-WTF 1.2.2
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create a `.env` file in the root directory by copying the template:
+
+    ```bash
+    cp .env-template .env
+    ```
+
+    Update the `.env` file with your database credentials:
+
+    ```bash .env
+    FLASK_APP=app.py
+    FLASK_ENV=development
+
+    DB_USER=your_mysql_user
+    DB_PASSWORD=your_mysql_password
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_NAME=furniture_store_db
+    ```
+
+    <Warning>
+      Never commit the `.env` file to version control. It contains sensitive credentials.
+    </Warning>
+  </Step>
+
+  <Step title="Create the Database">
+    Create a MySQL database for the application:
+
+    ```sql
+    CREATE DATABASE furniture_store_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    ```
+
+    You can run this in your MySQL client or command line:
+
+    ```bash
+    mysql -u root -p -e "CREATE DATABASE furniture_store_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    ```
+  </Step>
+
+  <Step title="Run Database Migrations">
+    Initialize the database schema using Flask-Migrate:
+
+    ```bash
+    flask db upgrade
+    ```
+
+    This will create all necessary tables including:
+    - `colors` - Color catalog
+    - `wood_types` - Wood type catalog
+    - `furniture_types` - Furniture type catalog
+    - `roles` - User roles
+    - `unit_of_measures` - Units of measurement
+  </Step>
+
+  <Step title="Start the Development Server">
+    Run the Flask application:
+
+    ```bash
+    python run.py
+    ```
+
+    Or using Flask CLI:
+
+    ```bash
+    flask run
+    ```
+
+    You should see output indicating the server is running:
+
+    ```bash
+    Database connection successful!
+     * Running on http://127.0.0.1:5000
+    ```
+
+    <Note>
+      The application includes a database connection test on startup to verify your configuration.
+    </Note>
+  </Step>
+
+  <Step title="Make Your First API Request">
+    Now let's create a color in the catalog. Open a new terminal and use curl:
+
+    <CodeGroup>
+      ```bash curl
+      curl -X POST http://127.0.0.1:5000/colors/create \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "name=Natural"
+      ```
+
+      ```python Python
+      import requests
+
+      response = requests.post(
+          'http://127.0.0.1:5000/colors/create',
+          data={'name': 'Natural'}
+      )
+      print(response.status_code)
+      ```
+
+      ```javascript JavaScript
+      fetch('http://127.0.0.1:5000/colors/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ name: 'Natural' })
+      })
+      .then(response => console.log(response.status));
+      ```
+    </CodeGroup>
+
+    You can also view the list of colors by visiting:
+
+    ```bash
+    curl http://127.0.0.1:5000/colors/
+    ```
+
+    Or open in your browser: [http://127.0.0.1:5000/colors/](http://127.0.0.1:5000/colors/)
+  </Step>
+</Steps>
+
+## Next Steps
+
+Congratulations! You've successfully set up the Furniture Store Backend. Here's what you can explore next:
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api/catalogs/colors">
+    Explore all available endpoints and their parameters
+  </Card>
+  <Card title="Architecture" icon="building" href="/architecture">
+    Learn about the MVC layered architecture
+  </Card>
+  <Card title="Models" icon="database" href="/database-models">
+    Understand the database schema and models
+  </Card>
+  <Card title="Development Guide" icon="wrench" href="/development/project-structure">
+    Best practices and coding conventions
+  </Card>
+</CardGroup>
+
+## Understanding the Code
+
+The color creation request you just made flows through these layers:
+
+```python app/catalogs/colors/routes.py
+@colors_bp.route("/create", methods=["GET", "POST"])
+def create_color():
+    form = ColorForm()
+    
+    if form.validate_on_submit():
+        data = {"name": form.name.data}
+        try:
+            ColorService.create(data)
+            flash("Color creado exitosamente", "success")
+            return redirect(url_for("colors.create_color"))
+        except ConflictError as e:
+            flash(e.message, "error")
+    
+    return render_template("colors/create.html", form=form)
+```
+
+The `ColorService.create()` method handles the business logic:
+
+```python app/catalogs/colors/services.py
+@staticmethod
+def create(data: dict) -> dict:
+    name = data.get("name")
+    
+    if not name or not name.strip():
+        raise ValidationError("El nombre del color es requerido")
+    
+    name = name.strip()
+    
+    # Check for duplicates
+    existing = Color.query.filter(func.lower(Color.name) == name.lower()).first()
+    if existing:
+        raise ConflictError(f"Ya existe un color con el nombre '{name}'")
+    
+    color = Color(name=name)
+    db.session.add(color)
+    db.session.commit()
+    
+    return color.to_dict()
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Database connection failed">
+    Verify your `.env` file has correct database credentials and that MySQL is running:
+    
+    ```bash
+    mysql -u your_user -p -e "SELECT 1;"
+    ```
+  </Accordion>
+
+  <Accordion title="ModuleNotFoundError">
+    Ensure your virtual environment is activated and dependencies are installed:
+    
+    ```bash
+    pip install -r requirements.txt
+    ```
+  </Accordion>
+
+  <Accordion title="Migration errors">
+    If migrations fail, ensure the database exists and is accessible:
+    
+    ```bash
+    flask db current
+    ```
+  </Accordion>
+</AccordionGroup>
